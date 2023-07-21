@@ -1,6 +1,10 @@
-FROM redis:6.0.20-alpine3.18
+FROM alpine:3.13 as base
 COPY ./giropops-senhas /giropops-senhas
+RUN apk add --no-cache py3-pip && pip install --no-cache-dir -r /giropops-senhas/requirements.txt
+
+FROM base
+COPY --from=base /giropops-senhas /giropops-senhas
 WORKDIR /giropops-senhas
-RUN apk update && apk add redis py-pip && pip install --no-cache-dir -r /giropops-senhas/requirements.txt
-ENV REDIS_HOST=localhost
-CMD redis-server & flask run --host=0.0.0.0
+ENV REDIS_HOST=redisdb
+RUN rm -rf /root/.cache /root/.cargo /usr/local/include /usr/local/share
+CMD flask run --host=0.0.0.0
